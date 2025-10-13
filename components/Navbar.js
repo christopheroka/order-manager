@@ -9,7 +9,7 @@ export default function Navbar(props) {
         if (rendered.current) return
         router.prefetch('/')
         router.prefetch('/orders')
-        router.prefetch('/order_dashboard')
+        router.prefetch('/order-dashboard')
         router.prefetch('/finances')
         rendered.current = true
     }, [])
@@ -43,17 +43,17 @@ export default function Navbar(props) {
                 <div className="relative cursor-pointer">
                     <a
                         className={
-                            props.activeTab == 'order_dashboard'
+                            props.activeTab == 'order-dashboard'
                                 ? 'text-pink-300'
                                 : ''
                         }
                         onClick={() => {
-                            navigate('/order_dashboard')
+                            navigate('/order-dashboard')
                         }}
                     >
                         ORDER DASHBOARD
                     </a>
-                    {props.activeTab == 'order_dashboard' ? (
+                    {props.activeTab == 'order-dashboard' ? (
                         <div className="absolute -bottom-3 left-0 bg-pink-300 w-full h-1"></div>
                     ) : (
                         ''

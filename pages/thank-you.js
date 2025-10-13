@@ -1,10 +1,10 @@
-import Image from "next/image";
-import Button from "../components/Button";
-import { useRouter } from "next/router";
-import MainHeader from "../components/MainHeader";
+import Image from 'next/image'
+import { useRouter } from 'next/router'
+import Button from '../components/Button'
+import MainHeader from '../components/MainHeader'
 
 export default function ThankYou() {
-    const router = useRouter();
+    const router = useRouter()
 
     return (
         <>
@@ -17,9 +17,9 @@ export default function ThankYou() {
 
                     <div className="flex flex-wrap justify-center gap-5 text-center my-8">
                         <p className="text-default-900 text-3xl ">
-                            {router.query.hasAdditionalInformation == "false"
-                                ? "Your order has been sent to your email"
-                                : "I will email you shortly with your order and total!"}
+                            {router.query.hasAdditionalInformation == 'true'
+                                ? 'I will email you shortly with your order and total!'
+                                : 'Your order has been sent to your email'}
                         </p>
                         <div className="flex h-10 w-20">
                             <Image
@@ -45,5 +45,5 @@ export default function ThankYou() {
                 </div>
             </div>
         </>
-    );
+    )
 }

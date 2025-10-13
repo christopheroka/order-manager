@@ -187,7 +187,7 @@ export default function OrderDashboard({
       </div>
 
       <div className="print:hidden">
-        <Navbar activeTab="order_dashboard" />
+        <Navbar activeTab="order-dashboard" />
       </div>
     </div>
   );
