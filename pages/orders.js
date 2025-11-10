@@ -53,6 +53,15 @@ export default function Orders({ initialOrderData, initialProductNames }) {
     const changeDate = async (date) => {
         if (date == 'All') {
             setOrderData(initialOrderData)
+        } else if (date == 'Corporate') {
+            const [newOrderData, newProductNames] = await Promise.all([
+                db.getAllCorporateData(
+                    DATE_RANGES[Object.keys(DATE_RANGES)[0]]
+                ),
+                db.getProductNames(),
+            ])
+            setOrderData(newOrderData)
+            setProductNames(newProductNames)
         } else {
             const [newOrderData, newProductNames] = await Promise.all([
                 db.getAllData(DATE_RANGES[date]),
