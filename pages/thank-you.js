@@ -1,10 +1,16 @@
 import Image from 'next/image'
 import { useRouter } from 'next/router'
+import { useEffect } from 'react'
 import Button from '../components/Button'
 import MainHeader from '../components/MainHeader'
 
 export default function ThankYou() {
     const router = useRouter()
+
+    useEffect(() => {
+        localStorage.setItem('itemCosts', '')
+        localStorage.setItem('cart', '')
+    })
 
     return (
         <>

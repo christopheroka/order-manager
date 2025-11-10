@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import Button from '../components/Button'
@@ -50,7 +49,6 @@ export default function Checkout({ products }) {
     const [itemCosts, updateItemCosts] = useState({})
     const [cookieFormData, updateCookieFormData] = useState({})
     const initiallyRendered = useRef(false)
-    const router = useRouter()
 
     useEffect(() => {
         const receivedCart = JSON.parse(localStorage.getItem('cart') || '{}')
@@ -223,10 +221,10 @@ export default function Checkout({ products }) {
                     (p) => p.product_id == productKey.replace('product_', '')
                 )
                 return {
-                    name: product.product_name,
+                    name: product?.product_name,
                     quantity: cart[productKey],
-                    price: parseFloat(product.product_price),
-                    description: product.product_description || '',
+                    price: parseFloat(product?.product_price),
+                    description: product?.product_description || '',
                 }
             })
 
