@@ -48,6 +48,7 @@ export default function Orders({ initialOrderData, initialProductNames }) {
     const [deletedOrderUid, setDeletedOrderUid] = useState(null)
     const [modalIsOpen, setModalIsOpen] = useState(false)
     const [modalBody, setModalBody] = useState('')
+    const [createModalIsOpen, setCreateModalIsOpen] = useState(false)
 
     const changeDate = async (date) => {
         if (date == 'All') {
@@ -187,6 +188,42 @@ export default function Orders({ initialOrderData, initialProductNames }) {
         document.getElementById(`${order_uid}-row`).classList.add('hidden')
     }
 
+    const createNewOrder = async (e) => {
+        e.preventDefault()
+        const formData = new FormData(e.currentTarget)
+        const customerName = formData.get('Customer Name')
+        const email = formData.get('Email')
+        const phone = formData.get('Phone')
+        const streetAddress = formData.get('Street Address')
+        const city = formData.get('City')
+        const additionalInformation = formData.get('Additional Information')
+        const miscFees = formData.get('Misc Fees')
+        const corporate = formData.get('Corporate')
+        const deliveryDate = formData.get('Delivery Date')
+
+        const products = productNames.map((product) => {
+            return {
+                product_id: product.product_id,
+                quantity: formData.get(product.product_name),
+                product_price: product.product_price,
+            }
+        })
+
+        await db.createNewOrder({
+            customerName,
+            email,
+            phone,
+            streetAddress,
+            city,
+            additionalInformation,
+            miscFees,
+            corporate,
+            deliveryDate,
+            products,
+        })
+        setCreateModalIsOpen(false)
+    }
+
     const openDeleteModal = (order_uid, customer_uid) => {
         const customerName = document.getElementById(
             `${customer_uid}-customer_name-text`
@@ -233,6 +270,72 @@ export default function Orders({ initialOrderData, initialProductNames }) {
     }
     return (
         <div className="overflow-hidden h-screen relative">
+            {createModalIsOpen && (
+                <div className="fixed inset-0 h-screen w-screen flex items-center justify-center backdrop-blur z-50">
+                    <div className="shadow-sm shadow-gray-400 border-gray-300 border p-8 rounded-md bg-white max-h-screen overflow-auto">
+                        <h2 className="text-2xl font-bold mb-2">
+                            Create Order
+                        </h2>
+
+                        <form
+                            className="flex flex-col gap-4"
+                            onSubmit={createNewOrder}
+                        >
+                            {[
+                                'Delivery Date',
+                                'Customer Name',
+                                'Email',
+                                'Phone',
+                                'Street Address',
+                                'City',
+                                'Additional Information',
+                                'Misc Fees',
+                                'Corporate',
+                            ].map((columnHeader) => {
+                                return (
+                                    <div
+                                        key={columnHeader.title ?? columnHeader}
+                                    >
+                                        <div className="font-bold mb-1">
+                                            {columnHeader}
+                                        </div>
+                                        <input
+                                            className="border-gray-300 border rounded-md p-1 w-full"
+                                            placeholder="Enter a value..."
+                                            name={columnHeader}
+                                            type={
+                                                columnHeader === 'Delivery Date'
+                                                    ? 'date'
+                                                    : 'text'
+                                            }
+                                        />
+                                    </div>
+                                )
+                            })}
+
+                            {productNames.map((product) => {
+                                return (
+                                    <div
+                                        key={
+                                            'create-new' + product.product_name
+                                        }
+                                    >
+                                        <div className="font-bold mb-1">
+                                            {product.product_name}
+                                        </div>
+                                        <input
+                                            className="border-gray-300 border rounded-md p-1 w-full"
+                                            placeholder="Enter a value..."
+                                            name={product.product_name}
+                                        />
+                                    </div>
+                                )
+                            })}
+                            <button type="submit">Create +</button>
+                        </form>
+                    </div>
+                </div>
+            )}
             <div className={`${modalIsOpen ? '' : 'hidden'}`}>
                 <ConfirmDeletionModal
                     header={'DELETE ORDER?'}
@@ -257,9 +360,11 @@ export default function Orders({ initialOrderData, initialProductNames }) {
                     <span className="hidden lg:inline">SIGN OUT</span>
                 </Button>
             </div>
-            <h1 className="pl-5 md:pl-0 md:text-center text-4xl font-bold py-6">
-                ALL ORDERS
-            </h1>
+            <div>
+                <h1 className="pl-5 md:pl-0 md:text-center text-4xl font-bold py-6">
+                    ALL ORDERS
+                </h1>
+            </div>
             <div>
                 <DateSidebar activeDate={activeDate} changeDate={changeDate} />
             </div>
@@ -271,7 +376,16 @@ export default function Orders({ initialOrderData, initialProductNames }) {
                     >
                         <thead>
                             <tr className="border-b-2 whitespace-nowrap">
-                                <th className="bg-default-100 py-3 px-4 sticky top-0 text-left z-10"></th>
+                                <th className="bg-default-100 py-3 px-4 sticky top-0 text-left z-10">
+                                    <Button
+                                        type="primary-md"
+                                        clickHandler={() =>
+                                            setCreateModalIsOpen(true)
+                                        }
+                                    >
+                                        Create Order +
+                                    </Button>
+                                </th>
                                 {[
                                     'Delivery Date',
                                     {

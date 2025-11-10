@@ -354,3 +354,95 @@ export async function getCorporateOrderCounts(start_date) {
     }
     return data
 }
+
+export async function createNewOrder({
+    customerName,
+    email,
+    phone,
+    streetAddress,
+    city,
+    additionalInformation,
+    miscFees,
+    corporate,
+    deliveryDate,
+    products,
+}) {
+    const { data: customerData, error: customerError } = await supabase
+        .from('customers')
+        .select('customer_uid')
+        .like('email', email)
+
+    if (customerError) {
+        console.error('Failed to get customer', customerError)
+        return false
+    }
+
+    let customerUid = customerData[0].customer_uid
+
+    if (!customerUid) {
+        const { data: customer, error: customerError } = await supabase
+            .from('customers')
+            .insert({
+                customer_name: customerName,
+                email: email,
+                phone,
+                address: streetAddress,
+                city,
+            })
+            .select('customer_uid')
+            .maybeSingle()
+
+        if (customerError) {
+            console.error('Failed to create customer', customerError)
+            return false
+        }
+
+        customerUid = customer.customer_uid
+    }
+
+    const orderCost = products.reduce((acc, curr) => {
+        if (curr.quantity) {
+            return acc + curr.product_price * Number(curr.quantity)
+        }
+        return acc
+    }, 0)
+
+    console.log({ orderCost })
+
+    const { data, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+            customer_uid: customerUid,
+            additional_information: additionalInformation,
+            misc_fees: miscFees,
+            is_corporate: corporate.toLowerCase() === 'yes',
+            delivery_date: deliveryDate,
+            payment_type: 'Online',
+            order_cost: orderCost,
+        })
+        .select('order_uid')
+        .maybeSingle()
+
+    if (orderError) {
+        console.error('Failed to insert order', orderError)
+        return false
+    }
+
+    const { error: orderItemsError } = await supabase
+        .from('order_items')
+        .insert(
+            products
+                .filter((product) => product.quantity)
+                .map((product) => ({
+                    order_uid: data.order_uid,
+                    product_id: product.product_id,
+                    quantity: product.quantity,
+                }))
+        )
+
+    if (orderItemsError) {
+        console.error('Failed to insert order items', orderItemsError)
+        return false
+    }
+    return { order_uid: data.order_uid }
+}

@@ -85,41 +85,45 @@ export default function Button(props) {
                 <button
                     className={`tracking-widest rounded-md flex items-center font-bold ${buttonStyle} ${
                         disabled ? 'opacity-50 cursor-default' : ''
-                    }`}
+                    } ${props.className}`}
                     onClick={disabled ? null : handleClick}
                 >
-                    <div
-                        className={`flex justify-center ${
-                            ['primary-md', 'secondary-md'].includes(props.type)
-                                ? 'w-[16px] sm:w-[24px]'
-                                : 'w-[28px] sm:w-[28px]'
-                        }`}
-                    >
-                        <Image
-                            className={
-                                ['secondary', 'secondary-md'].includes(
-                                    props.type
-                                ) && !props.uninvertImg
-                                    ? 'invert'
-                                    : null
-                            }
-                            src={props.img}
-                            width={`${
+                    {props.img && (
+                        <div
+                            className={`flex justify-center ${
                                 ['primary-md', 'secondary-md'].includes(
                                     props.type
                                 )
-                                    ? '24'
-                                    : '28'
+                                    ? 'w-[16px] sm:w-[24px]'
+                                    : 'w-[28px] sm:w-[28px]'
                             }`}
-                            height={`${
-                                ['primary-md', 'secondary-md'].includes(
-                                    props.type
-                                )
-                                    ? '24'
-                                    : '28'
-                            }`}
-                        />
-                    </div>
+                        >
+                            <Image
+                                className={
+                                    ['secondary', 'secondary-md'].includes(
+                                        props.type
+                                    ) && !props.uninvertImg
+                                        ? 'invert'
+                                        : null
+                                }
+                                src={props.img}
+                                width={`${
+                                    ['primary-md', 'secondary-md'].includes(
+                                        props.type
+                                    )
+                                        ? '24'
+                                        : '28'
+                                }`}
+                                height={`${
+                                    ['primary-md', 'secondary-md'].includes(
+                                        props.type
+                                    )
+                                        ? '24'
+                                        : '28'
+                                }`}
+                            />
+                        </div>
+                    )}
                     {props.children}
                 </button>
             )}
