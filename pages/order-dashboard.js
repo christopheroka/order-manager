@@ -58,6 +58,16 @@ export default function OrderDashboard({
             setOrderData(initialOrderData)
             setProductNames(initialProductNames)
             setActiveDate(date)
+        } else if (date === 'Corporate') {
+            const [newOrderData, newProductNames] = await Promise.all([
+                db.getAllCorporateData(
+                    DATE_RANGES[Object.keys(DATE_RANGES)[0]]
+                ),
+                db.getProductNames(),
+            ])
+            setOrderData(newOrderData)
+            setProductNames(newProductNames)
+            setActiveDate(date)
         } else {
             const [newOrderData, newProductNames] = await Promise.all([
                 db.getAllData(DATE_RANGES[date]),

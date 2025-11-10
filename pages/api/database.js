@@ -68,6 +68,18 @@ export async function getAllData(dates) {
     return data
 }
 
+export async function getAllCorporateData(dates) {
+    const { data, error } = await supabase.rpc('get_all_corporate_order_data', {
+        start_date: dates.start_date,
+    })
+
+    if (error) {
+        console.log(error)
+    }
+
+    return data
+}
+
 export async function getOrderByUid(order_uid) {
     const { data, error } = await supabase.rpc('get_order_by_uid', {
         retrieval_order_uid: order_uid,
