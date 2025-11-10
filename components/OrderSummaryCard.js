@@ -14,9 +14,9 @@ export default function OrderSummaryCard(props) {
     )
 
     const deliveryDates = [
-        'Sat Dec 07 2024',
-        'Thu Dec 12 2024',
-        'Thu Dec 19 2024',
+        'Thu Dec 11 2025',
+        'Thu Dec 18 2025',
+        'Mon Dec 22 2025',
     ]
 
     const isIrregularDeliveryDate = !deliveryDates.includes(

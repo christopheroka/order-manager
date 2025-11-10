@@ -49,6 +49,7 @@ function verifySignature(body, signature, signatureKey, notificationUrl) {
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
+        console.log('Invalid request method', req.method)
         return res.status(405).json({ error: 'Method not allowed' })
     }
 
