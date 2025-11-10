@@ -85,7 +85,6 @@ export default function Checkout({ products }) {
             'address',
             'city',
             'delivery_date',
-            'payment_type',
         ]
         let isValid = true
         let newEmptyFields = {}
