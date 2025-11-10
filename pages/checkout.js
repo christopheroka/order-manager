@@ -379,22 +379,6 @@ export default function Checkout({ products }) {
 
     const orderFields = [
         {
-            name: 'payment_type',
-            text: 'Payment Type',
-            fieldStyle: 'select',
-            options: [
-                {
-                    value: 'E-Transfer',
-                    text: 'E-Transfer',
-                },
-                {
-                    value: 'Cash',
-                    text: 'Cash On Delivery',
-                },
-            ],
-            required: true,
-        },
-        {
             name: 'delivery_date',
             text: 'Delivery Date',
             fieldStyle: 'select',

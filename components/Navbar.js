@@ -10,6 +10,7 @@ export default function Navbar(props) {
         router.prefetch('/')
         router.prefetch('/orders')
         router.prefetch('/order-dashboard')
+        router.prefetch('/customers')
         router.prefetch('/finances')
         rendered.current = true
     }, [])
@@ -22,7 +23,9 @@ export default function Navbar(props) {
 
     return (
         <div className="w-full fixed bottom-0">
-            <div className="flex items-center justify-around text-sm font-bold mb-5 bg-default-900 text-default-100 py-3 px-1 md:mx-4 rounded text-center md:rounded-full md:text-left md:text-xl lg:mx-32 xl:mx-72 2xl:mx-96">
+            <div className="mb-5 mx-2 md:mx-4 lg:mx-8 xl:mx-16 2xl:mx-32">
+                <div className="overflow-x-auto bg-default-900 rounded md:rounded-full">
+                    <div className="flex items-center justify-start md:justify-around text-sm font-bold text-default-100 py-3 px-4 text-center md:text-left md:text-xl min-w-max gap-6 md:gap-4">
                 <div className="relative cursor-pointer">
                     <a
                         className={
@@ -71,6 +74,23 @@ export default function Navbar(props) {
                         ALL ORDERS
                     </a>
                     {props.activeTab == 'orders' ? (
+                        <div className="absolute -bottom-3 left-0 bg-pink-300 w-full h-1"></div>
+                    ) : (
+                        ''
+                    )}
+                </div>
+                <div className="relative cursor-pointer">
+                    <a
+                        className={
+                            props.activeTab == 'customers' ? 'text-pink-300' : ''
+                        }
+                        onClick={() => {
+                            navigate('/customers')
+                        }}
+                    >
+                        CUSTOMERS
+                    </a>
+                    {props.activeTab == 'customers' ? (
                         <div className="absolute -bottom-3 left-0 bg-pink-300 w-full h-1"></div>
                     ) : (
                         ''
@@ -130,6 +150,8 @@ export default function Navbar(props) {
                     ) : (
                         ''
                     )}
+                </div>
+                    </div>
                 </div>
             </div>
         </div>

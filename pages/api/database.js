@@ -279,3 +279,32 @@ export async function getSpendingByDay(start_date, end_date) {
     }
     return data
 }
+
+export async function getCustomersData() {
+    const { data, error } = await supabase
+        .from('customers')
+        .select(`
+            customer_uid,
+            customer_name,
+            email,
+            phone,
+            address,
+            city,
+            orders!inner (
+                order_uid,
+                delivery_date,
+                order_cost,
+                misc_fees,
+                has_paid,
+                is_verified,
+                creation_timestamp
+            )
+        `)
+        .order('customer_name', { ascending: true })
+
+    if (error) {
+        console.log(error)
+        return false
+    }
+    return data
+}
