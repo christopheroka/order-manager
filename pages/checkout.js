@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import Button from '../components/Button'
@@ -50,7 +49,6 @@ export default function Checkout({ products }) {
     const [itemCosts, updateItemCosts] = useState({})
     const [cookieFormData, updateCookieFormData] = useState({})
     const initiallyRendered = useRef(false)
-    const router = useRouter()
 
     useEffect(() => {
         const receivedCart = JSON.parse(localStorage.getItem('cart') || '{}')
@@ -77,76 +75,6 @@ export default function Checkout({ products }) {
             ...formData,
             [e.target.name]: e.target.value.trim(),
         })
-    }
-
-    const handlePlaceOrder = async (e) => {
-        e.preventDefault()
-        const orderCost = Object.values(itemCosts).reduce((a, b) => a + b, 0)
-        if (orderCost == '0.00' || !orderCost) {
-            alert('No items are in your order!')
-            return true
-        }
-        if (!validateForm(formData)) {
-            alert('Please fill in all required fields')
-            return true
-        }
-        if (!validateEmail(formData.email)) {
-            alert('Please enter a valid email address')
-            updateEmptyFields({ ...emptyFields, email: true })
-            return true
-        }
-
-        if (
-            formData['delivery_date'] == 'Other' &&
-            formData['alternative_delivery_date']
-        ) {
-            formData['delivery_date'] = formData['alternative_delivery_date']
-            delete formData['alternative_delivery_date']
-        }
-
-        if (formData['city'] == 'Other' && formData['alternative_city']) {
-            formData['city'] = formData['alternative_city']
-            delete formData['alternative_city']
-        }
-
-        const { order_uid } = await sendFormData({
-            ...formData,
-            order_cost: orderCost,
-            order_data: cart,
-        })
-
-        if (!order_uid) return false
-
-        const hasAdditionalInformation = !!formData.additional_information
-
-        let email_addresses = [{ address: formData.email, name: formData.name }]
-        if (hasAdditionalInformation) {
-            email_addresses = []
-        }
-        await fetch('/api/sendOrderEmail', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                order_details: formData,
-                order_cost: orderCost,
-                cart,
-                products: products,
-                email_addresses,
-            }),
-        })
-
-        if (!hasAdditionalInformation) await db.setEmailedStatus(order_uid)
-
-        await router.push(
-            {
-                pathname: '/thank_you',
-                query: { hasAdditionalInformation },
-            },
-            '/thank_you'
-        )
-        localStorage.setItem('cart', '')
-        localStorage.setItem('itemCosts', '')
-        return true
     }
 
     const validateForm = () => {
@@ -245,6 +173,85 @@ export default function Checkout({ products }) {
             ...cookieFormData,
             [e.target.name]: e.target.value.trim(),
         })
+    }
+
+    const handleCheckout = async (e) => {
+        e.preventDefault()
+        const orderCost = Object.values(itemCosts).reduce((a, b) => a + b, 0)
+        if (orderCost == '0.00' || !orderCost) {
+            alert('No items are in your order!')
+            return true
+        }
+        if (!validateForm(formData)) {
+            alert('Please fill in all required fields')
+            return true
+        }
+        if (!validateEmail(formData.email)) {
+            alert('Please enter a valid email address')
+            updateEmptyFields({ ...emptyFields, email: true })
+            return true
+        }
+
+        if (
+            formData['delivery_date'] == 'Other' &&
+            formData['alternative_delivery_date']
+        ) {
+            formData['delivery_date'] = formData['alternative_delivery_date']
+            delete formData['alternative_delivery_date']
+        }
+
+        if (formData['city'] == 'Other' && formData['alternative_city']) {
+            formData['city'] = formData['alternative_city']
+            delete formData['alternative_city']
+        }
+
+        // Create order in database first
+        const { order_uid } = await sendFormData({
+            ...formData,
+            order_cost: orderCost,
+            order_data: cart,
+        })
+
+        if (!order_uid) return false
+
+        try {
+            // Transform cart items to Square format
+            const squareItems = Object.keys(cart).map((productKey) => {
+                const product = products.find(
+                    (p) => p.product_id == productKey.replace('product_', '')
+                )
+                return {
+                    name: product?.product_name,
+                    quantity: cart[productKey],
+                    price: parseFloat(product?.product_price),
+                    description: product?.product_description || '',
+                }
+            })
+
+            const response = await fetch('/api/create-checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    items: squareItems,
+                    customerEmail: formData.email,
+                    orderId: order_uid,
+                }),
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to create checkout')
+            }
+
+            // Redirect to Square's hosted checkout
+            window.location.href = data.checkoutUrl
+        } catch (err) {
+            console.error('Checkout error:', err)
+            alert('Failed to create payment. Please try again.')
+        }
     }
 
     const decreaseProductQty = (e) => {
@@ -369,22 +376,6 @@ export default function Checkout({ products }) {
 
     const orderFields = [
         {
-            name: 'payment_type',
-            text: 'Payment Type',
-            fieldStyle: 'select',
-            options: [
-                {
-                    value: 'E-Transfer',
-                    text: 'E-Transfer',
-                },
-                {
-                    value: 'Cash',
-                    text: 'Cash On Delivery',
-                },
-            ],
-            required: true,
-        },
-        {
             name: 'delivery_date',
             text: 'Delivery Date',
             fieldStyle: 'select',
@@ -401,8 +392,8 @@ export default function Checkout({ products }) {
             text: 'Alternative Delivery Date',
             fieldStyle: 'input',
             type: 'date',
-            min: '2024-11-01',
-            max: '2024-01-31',
+            min: '2025-11-01',
+            max: '2026-01-31',
             hidden: true,
             required: true,
             description:
@@ -556,9 +547,9 @@ export default function Checkout({ products }) {
                     <Button
                         type="primary"
                         img="/images/icons/cookie.png"
-                        clickHandler={handlePlaceOrder}
+                        clickHandler={handleCheckout}
                     >
-                        PLACE ORDER
+                        PAY FOR ORDER
                     </Button>
                 </div>
             </div>
