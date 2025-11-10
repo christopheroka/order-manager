@@ -34,6 +34,7 @@ async function sendFormData(data) {
         })
     }
     data.is_verified = !data.additional_information
+    data.payment_type = 'Online'
     delete data.order_data
     if (!(await db.insertCustomerAndOrder(data))) {
         alert('Order not processed. Please try again.')
