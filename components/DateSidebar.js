@@ -1,7 +1,7 @@
 import { DATE_RANGES } from '../utils/constants'
 
 export default function DateSidebar(props) {
-    const dates = ['All', ...Object.keys(DATE_RANGES)]
+    const dates = ['All', ...Object.keys(DATE_RANGES), 'Corporate']
 
     return (
         <div className="absolute top-0 left-0 px-3 w-full h-20 md:px-0 md:h-full md:w-28 flex flex-row justify-center md:flex-col">
@@ -20,7 +20,7 @@ export default function DateSidebar(props) {
                                     props.activeDate == date
                                         ? 'text-default-100'
                                         : 'text-default-900'
-                                } font-bold text-sm sm:text-3xl text-center pb-1 z-10`}
+                                } font-bold text-sm text-center pb-1 z-10 ${date === 'Corporate' ? 'sm:text-xl' : 'sm:text-3xl '}`}
                             >
                                 {date}
                             </h3>

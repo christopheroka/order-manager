@@ -152,6 +152,7 @@ export default function Orders({ initialOrderData, initialProductNames }) {
             'order_cost',
             'misc_fees',
             'creation_timestamp',
+            'is_corporate',
         ]
         if (orders_columns.includes(col_name) && col_name !== 'is_verified') {
             document.getElementById(`${uid}-is_verified-text`).innerText = 'No'
@@ -289,6 +290,7 @@ export default function Orders({ initialOrderData, initialProductNames }) {
                                     'Misc Fees',
                                     'Total Cost',
                                     'Time of Order',
+                                    'Corporate',
                                 ].map((columnHeader) => {
                                     return (
                                         <th
@@ -538,6 +540,21 @@ export default function Orders({ initialOrderData, initialProductNames }) {
                                                 {new Date(
                                                     order.creation_timestamp
                                                 ).toDateString()}
+                                            </OrderTableData>
+                                        </td>
+                                        <td>
+                                            <OrderTableData
+                                                uid={order.order_uid}
+                                                col_name="is_corporate"
+                                                editTableData={editTableData}
+                                                saveTableEdit={saveTableEdit}
+                                                cancelTableEdit={
+                                                    cancelTableEdit
+                                                }
+                                            >
+                                                {order.is_corporate
+                                                    ? 'Yes'
+                                                    : 'No'}
                                             </OrderTableData>
                                         </td>
 

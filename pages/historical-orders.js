@@ -1,11 +1,10 @@
-import { getSession, signOut } from "next-auth/react";
-import { useState } from "react";
-import Button from "../components/Button";
-import ConfirmDeletionModal from "../components/ConfirmDeletionModal";
-import Navbar from "../components/Navbar";
-import OrderTableData from "../components/OrderTableData";
-import * as db from "./api/database";
-import { allowedEmails } from "./login";
+import { signOut } from 'next-auth/react'
+import { useState } from 'react'
+import Button from '../components/Button'
+import ConfirmDeletionModal from '../components/ConfirmDeletionModal'
+import Navbar from '../components/Navbar'
+import OrderTableData from '../components/OrderTableData'
+import * as db from './api/database'
 
 export async function getServerSideProps(context) {
     // const session = await getSession(context);
@@ -18,203 +17,198 @@ export async function getServerSideProps(context) {
     //     context.res.end();
     //     return {};
     // }
-    const currentSeason = new Date(0);
+    const currentSeason = new Date(0)
     const oneYearFromNow = new Date(
         new Date().setFullYear(new Date().getFullYear() + 1)
-    );
+    )
     const dates = {
         start_date: currentSeason,
         end_date: oneYearFromNow,
-    };
+    }
     const [orderData, products] = await Promise.all([
         db.getAllData(dates),
         db.getProductNames(),
-    ]);
+    ])
     return {
         props: {
             initialOrderData: orderData,
             initialProductNames: products,
         },
-    };
+    }
 }
 
 export default function Orders({ initialOrderData, initialProductNames }) {
-    const [orderData, setOrderData] = useState(initialOrderData);
-    const [productNames, setProductNames] = useState(initialProductNames);
-    const [deletedOrderUid, setDeletedOrderUid] = useState(null);
-    const [modalIsOpen, setModalIsOpen] = useState(false);
-    const [modalBody, setModalBody] = useState("");
+    const [orderData, setOrderData] = useState(initialOrderData)
+    const [productNames, setProductNames] = useState(initialProductNames)
+    const [deletedOrderUid, setDeletedOrderUid] = useState(null)
+    const [modalIsOpen, setModalIsOpen] = useState(false)
+    const [modalBody, setModalBody] = useState('')
 
     const editTableData = (e) => {
-        const button = e.currentTarget;
-        const uid = button.dataset["uid"];
-        const col_name = button.dataset["col_name"];
-        const input = document.getElementById(`${uid}-${col_name}-input`);
-        const text = document.getElementById(`${uid}-${col_name}-text`);
-        const textWell = document.getElementById(
-            `${uid}-${col_name}-text-well`
-        );
-        const btns = document.getElementById(`${uid}-${col_name}-btns`);
-        const value = text.innerText;
-        textWell.classList.add("hidden");
-        input.setAttribute("size", value.length);
-        if (col_name === "delivery_date") {
-            const date = new Date(value);
+        const button = e.currentTarget
+        const uid = button.dataset['uid']
+        const col_name = button.dataset['col_name']
+        const input = document.getElementById(`${uid}-${col_name}-input`)
+        const text = document.getElementById(`${uid}-${col_name}-text`)
+        const textWell = document.getElementById(`${uid}-${col_name}-text-well`)
+        const btns = document.getElementById(`${uid}-${col_name}-btns`)
+        const value = text.innerText
+        textWell.classList.add('hidden')
+        input.setAttribute('size', value.length)
+        if (col_name === 'delivery_date') {
+            const date = new Date(value)
             value =
                 date.getUTCFullYear() +
-                "-" +
-                ("0" + (date.getUTCMonth() + 1)).slice(-2) +
-                "-" +
-                ("0" + date.getUTCDate()).slice(-2);
+                '-' +
+                ('0' + (date.getUTCMonth() + 1)).slice(-2) +
+                '-' +
+                ('0' + date.getUTCDate()).slice(-2)
         }
-        input.value = value;
-        input.focus();
-        input.classList.remove("hidden");
-        if (col_name == "additional_information") {
-            changeTextAreaHeight(null, input);
+        input.value = value
+        input.focus()
+        input.classList.remove('hidden')
+        if (col_name == 'additional_information') {
+            changeTextAreaHeight(null, input)
         }
 
-        button.classList.add("hidden");
-        btns.classList.remove("hidden");
-    };
+        button.classList.add('hidden')
+        btns.classList.remove('hidden')
+    }
 
     const saveTableEdit = async (e) => {
-        const button = e.currentTarget;
-        const uid = button.dataset["uid"];
-        const col_name = button.dataset["col_name"];
-        const input = document.getElementById(`${uid}-${col_name}-input`);
-        const value = input.value;
+        const button = e.currentTarget
+        const uid = button.dataset['uid']
+        const col_name = button.dataset['col_name']
+        const input = document.getElementById(`${uid}-${col_name}-input`)
+        const value = input.value
         if (!isNaN(col_name)) {
-            const productsData = await db.getAllProductsData();
-            const order = await db.getOrderByUid(uid);
+            const productsData = await db.getAllProductsData()
+            const order = await db.getOrderByUid(uid)
             if (!order) {
-                console.log("Order not found");
-                return;
+                console.log('Order not found')
+                return
             }
-            order = order[0];
-            const order_items = order.order_items;
-            order_items[col_name] = parseFloat(value);
-            let order_cost = 0;
+            order = order[0]
+            const order_items = order.order_items
+            order_items[col_name] = parseFloat(value)
+            let order_cost = 0
             for (const [id, qty] of Object.entries(order_items)) {
                 const currentProduct = productsData.find(
                     (product) => product.product_id == parseInt(id)
-                );
+                )
                 const product_cost =
-                    parseFloat(currentProduct.product_price) * parseFloat(qty);
-                order_cost += product_cost;
+                    parseFloat(currentProduct.product_price) * parseFloat(qty)
+                order_cost += product_cost
             }
-            await db.updateTableData(value, uid, col_name, order_cost);
+            await db.updateTableData(value, uid, col_name, order_cost)
             document.getElementById(`${uid}-order_cost-text`).innerText =
-                order_cost;
+                order_cost
             const misc_fees = document.getElementById(
                 `${uid}-misc_fees-text`
-            ).innerText;
+            ).innerText
             document.getElementById(`${uid}-total_cost-text`).innerText =
-                order_cost + parseFloat(misc_fees);
+                order_cost + parseFloat(misc_fees)
         } else {
-            await db.updateTableData(value, uid, col_name);
+            await db.updateTableData(value, uid, col_name)
         }
-        const text = document.getElementById(`${uid}-${col_name}-text`);
-        const textWell = document.getElementById(
-            `${uid}-${col_name}-text-well`
-        );
-        const btns = document.getElementById(`${uid}-${col_name}-btns`);
-        const editBtn = document.getElementById(`${uid}-${col_name}-edit`);
-        if (col_name === "delivery_date") {
-            const date = new Date(value + "T00:00:00");
-            value = date.toDateString();
+        const text = document.getElementById(`${uid}-${col_name}-text`)
+        const textWell = document.getElementById(`${uid}-${col_name}-text-well`)
+        const btns = document.getElementById(`${uid}-${col_name}-btns`)
+        const editBtn = document.getElementById(`${uid}-${col_name}-edit`)
+        if (col_name === 'delivery_date') {
+            const date = new Date(value + 'T00:00:00')
+            value = date.toDateString()
         }
-        text.innerText = parseInt("col_name") ? value || 0 : value || "-";
-        textWell.classList.remove("hidden");
-        input.classList.add("hidden");
-        editBtn.classList.remove("hidden");
-        btns.classList.add("hidden");
+        text.innerText = parseInt('col_name') ? value || 0 : value || '-'
+        textWell.classList.remove('hidden')
+        input.classList.add('hidden')
+        editBtn.classList.remove('hidden')
+        btns.classList.add('hidden')
         const orders_columns = [
-            "delivery_date",
-            "has_paid",
-            "is_verified",
-            "payment_type",
-            "additional_information",
-            "order_cost",
-            "misc_fees",
-            "creation_timestamp",
-        ];
-        if (orders_columns.includes(col_name) && col_name !== "is_verified") {
-            document.getElementById(`${uid}-is_verified-text`).innerText = "No";
-            if (col_name == "misc_fees") {
+            'delivery_date',
+            'has_paid',
+            'is_verified',
+            'payment_type',
+            'additional_information',
+            'order_cost',
+            'misc_fees',
+            'creation_timestamp',
+            'is_corporate',
+        ]
+        if (orders_columns.includes(col_name) && col_name !== 'is_verified') {
+            document.getElementById(`${uid}-is_verified-text`).innerText = 'No'
+            if (col_name == 'misc_fees') {
                 const order_cost = document.getElementById(
                     `${uid}-order_cost-text`
-                ).innerText;
-                const total_cost = parseInt(order_cost) + parseInt(value);
+                ).innerText
+                const total_cost = parseInt(order_cost) + parseInt(value)
                 document.getElementById(`${uid}-total_cost-text`).innerText =
-                    total_cost;
+                    total_cost
             }
         }
-    };
+    }
 
     const cancelTableEdit = (e) => {
-        const button = e.currentTarget;
-        const uid = button.dataset["uid"];
-        const col_name = button.dataset["col_name"];
-        const input = document.getElementById(`${uid}-${col_name}-input`);
-        const textWell = document.getElementById(
-            `${uid}-${col_name}-text-well`
-        );
-        const btns = document.getElementById(`${uid}-${col_name}-btns`);
-        const editBtn = document.getElementById(`${uid}-${col_name}-edit`);
-        textWell.classList.remove("hidden");
-        input.classList.add("hidden");
-        editBtn.classList.remove("hidden");
-        btns.classList.add("hidden");
-    };
+        const button = e.currentTarget
+        const uid = button.dataset['uid']
+        const col_name = button.dataset['col_name']
+        const input = document.getElementById(`${uid}-${col_name}-input`)
+        const textWell = document.getElementById(`${uid}-${col_name}-text-well`)
+        const btns = document.getElementById(`${uid}-${col_name}-btns`)
+        const editBtn = document.getElementById(`${uid}-${col_name}-edit`)
+        textWell.classList.remove('hidden')
+        input.classList.add('hidden')
+        editBtn.classList.remove('hidden')
+        btns.classList.add('hidden')
+    }
 
     const deleteOrder = async (order_uid) => {
-        closeDeleteModal();
-        await db.deleteOrder(order_uid);
-        document.getElementById(`${order_uid}-row`).classList.add("hidden");
-    };
+        closeDeleteModal()
+        await db.deleteOrder(order_uid)
+        document.getElementById(`${order_uid}-row`).classList.add('hidden')
+    }
 
     const openDeleteModal = (order_uid, customer_uid) => {
         const customerName = document.getElementById(
             `${customer_uid}-customer_name-text`
-        ).innerText;
+        ).innerText
         const deliveryDate = document.getElementById(
             `${order_uid}-delivery_date-text`
-        ).innerText;
+        ).innerText
         setModalBody(
             `<b>Name:</b> ${customerName}<br><b>Delivery Date:</b> ${deliveryDate}`
-        );
-        setModalIsOpen(true);
-        setDeletedOrderUid(order_uid);
-    };
+        )
+        setModalIsOpen(true)
+        setDeletedOrderUid(order_uid)
+    }
 
     const closeDeleteModal = () => {
-        setModalBody("");
-        setModalIsOpen(false);
-        setDeletedOrderUid(null);
-    };
+        setModalBody('')
+        setModalIsOpen(false)
+        setDeletedOrderUid(null)
+    }
 
     const changeTextAreaHeight = (e, input) => {
         if (e) {
-            e.currentTarget.style.height = "";
-            e.currentTarget.style.height = e.currentTarget.scrollHeight + "px";
+            e.currentTarget.style.height = ''
+            e.currentTarget.style.height = e.currentTarget.scrollHeight + 'px'
         } else {
-            input.style.height = "";
-            input.style.height = input.scrollHeight + "px";
+            input.style.height = ''
+            input.style.height = input.scrollHeight + 'px'
         }
-    };
+    }
 
     return (
         <div className="overflow-hidden h-screen relative">
-            <div className={`${modalIsOpen ? "" : "hidden"}`}>
+            <div className={`${modalIsOpen ? '' : 'hidden'}`}>
                 <ConfirmDeletionModal
-                    header={"DELETE ORDER?"}
+                    header={'DELETE ORDER?'}
                     body={modalBody}
                     deleteCallback={() => {
-                        deleteOrder(deletedOrderUid);
+                        deleteOrder(deletedOrderUid)
                     }}
                     closeCallback={() => {
-                        closeDeleteModal();
+                        closeDeleteModal()
                     }}
                 />
             </div>
@@ -223,8 +217,8 @@ export default function Orders({ initialOrderData, initialProductNames }) {
                     type="primary-md"
                     img="/images/icons/logout.svg"
                     clickHandler={() => {
-                        signOut();
-                        return true;
+                        signOut()
+                        return true
                     }}
                 >
                     <span className="hidden lg:inline">SIGN OUT</span>
@@ -243,28 +237,28 @@ export default function Orders({ initialOrderData, initialProductNames }) {
                             <tr className="border-b-2 whitespace-nowrap">
                                 <th className="bg-default-100 py-3 px-4 sticky top-0 text-left z-10"></th>
                                 {[
-                                    "Delivery Date",
+                                    'Delivery Date',
                                     {
-                                        title: "Customer Name",
-                                        props: "z-20 px-0 pl-4 left-0",
+                                        title: 'Customer Name',
+                                        props: 'z-20 px-0 pl-4 left-0',
                                     },
-                                    "Email",
-                                    "Phone",
-                                    "Street Address",
-                                    "City",
-                                    "Payment Received",
-                                    "Verified",
-                                    "Payment Type",
-                                    "Additional Information",
-                                    "Order Cost",
-                                    "Misc Fees",
-                                    "Total Cost",
-                                    "Time of Order",
+                                    'Email',
+                                    'Phone',
+                                    'Street Address',
+                                    'City',
+                                    'Payment Received',
+                                    'Verified',
+                                    'Payment Type',
+                                    'Additional Information',
+                                    'Order Cost',
+                                    'Misc Fees',
+                                    'Total Cost',
+                                    'Time of Order',
                                 ].map((columnHeader) => {
                                     return (
                                         <th
                                             className={`bg-default-100 py-3 px-4 sticky top-0 text-left ${
-                                                columnHeader.props ?? ""
+                                                columnHeader.props ?? ''
                                             }`}
                                             key={
                                                 columnHeader.title ??
@@ -273,7 +267,7 @@ export default function Orders({ initialOrderData, initialProductNames }) {
                                         >
                                             {columnHeader.title ?? columnHeader}
                                         </th>
-                                    );
+                                    )
                                 })}
                                 {productNames.map((product) => {
                                     return (
@@ -283,7 +277,7 @@ export default function Orders({ initialOrderData, initialProductNames }) {
                                         >
                                             {product.product_name}
                                         </th>
-                                    );
+                                    )
                                 })}
                             </tr>
                         </thead>
@@ -301,7 +295,7 @@ export default function Orders({ initialOrderData, initialProductNames }) {
                                                     openDeleteModal(
                                                         order.order_uid,
                                                         order.customer_uid
-                                                    );
+                                                    )
                                                 }}
                                             >
                                                 <svg
@@ -413,7 +407,7 @@ export default function Orders({ initialOrderData, initialProductNames }) {
                                                 uid={order.order_uid}
                                                 col_name="has_paid"
                                             >
-                                                {order.has_paid ? "Yes" : "No"}
+                                                {order.has_paid ? 'Yes' : 'No'}
                                             </OrderTableData>
                                         </td>
                                         <td>
@@ -427,8 +421,8 @@ export default function Orders({ initialOrderData, initialProductNames }) {
                                                 col_name="is_verified"
                                             >
                                                 {order.is_verified
-                                                    ? "Yes"
-                                                    : "No"}
+                                                    ? 'Yes'
+                                                    : 'No'}
                                             </OrderTableData>
                                         </td>
                                         <td>
@@ -516,7 +510,7 @@ export default function Orders({ initialOrderData, initialProductNames }) {
                                             const productQuantity =
                                                 order.order_items?.[
                                                     product.product_id
-                                                ];
+                                                ]
                                             return (
                                                 <td key={product.product_id}>
                                                     <OrderTableData
@@ -539,10 +533,10 @@ export default function Orders({ initialOrderData, initialProductNames }) {
                                                             : 0}
                                                     </OrderTableData>
                                                 </td>
-                                            );
+                                            )
                                         })}
                                     </tr>
-                                );
+                                )
                             })}
                         </tbody>
                     </table>
@@ -550,5 +544,5 @@ export default function Orders({ initialOrderData, initialProductNames }) {
             </div>
             <Navbar activeTab="historical-orders" />
         </div>
-    );
+    )
 }

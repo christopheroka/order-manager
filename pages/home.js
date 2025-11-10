@@ -1,4 +1,4 @@
-import { getSession, signOut, useSession } from 'next-auth/react'
+import { signOut, useSession } from 'next-auth/react'
 import Image from 'next/image'
 import { useRouter } from 'next/router.js'
 import { useEffect, useState } from 'react'
@@ -107,12 +107,13 @@ const processProducts = (products, productsData) => {
 }
 
 export default function Home({ productsWithQty, initialOrderCounts }) {
-    const [startDate, setStartDate] = useState('September 1st, 2024')
+    const [startDate, setStartDate] = useState('September 1st, 2025')
     const [endDate, setEndDate] = useState('Present')
     const [activeDate, setActiveDate] = useState('All')
     const [products, setProducts] = useState(productsWithQty)
     const [orderCounts, setOrderCounts] = useState(initialOrderCounts)
     const [innerHeight, updateInnerHeight] = useState(0)
+    const [isCorporate, setIsCorporate] = useState(false)
 
     useEffect(() => {
         function detectInnerHeight() {
@@ -133,6 +134,25 @@ export default function Home({ productsWithQty, initialOrderCounts }) {
             setEndDate('Present')
             setProducts(productsWithQty)
             setOrderCounts(initialOrderCounts)
+            setIsCorporate(false)
+        } else if (date === 'Corporate') {
+            const [products, newOrderCounts, newProductsData] =
+                await Promise.all([
+                    db.getTotalCorporateProductQty(
+                        DATE_RANGES[
+                            Object.keys(DATE_RANGES)[0]
+                        ].start_date.toDateString()
+                    ),
+                    db.getCorporateOrderCounts(
+                        DATE_RANGES[
+                            Object.keys(DATE_RANGES)[0]
+                        ].start_date.toDateString()
+                    ),
+                    db.getAllProductsData(),
+                ])
+            setProducts(processProducts(products, newProductsData))
+            setOrderCounts(newOrderCounts)
+            setIsCorporate(true)
         } else {
             const [products, newOrderCounts, newProductsData] =
                 await Promise.all([
@@ -144,6 +164,7 @@ export default function Home({ productsWithQty, initialOrderCounts }) {
             setStartDate(DATE_RANGES[date].start_date.toDateString())
             setEndDate(DATE_RANGES[date].end_date.toDateString())
             setOrderCounts(newOrderCounts)
+            setIsCorporate(false)
         }
         setActiveDate(date)
     }
@@ -189,7 +210,11 @@ export default function Home({ productsWithQty, initialOrderCounts }) {
                 </Button>
             </div>
             <div className="print:hidden">
-                <DateSidebar activeDate={activeDate} changeDate={changeDate} />
+                <DateSidebar
+                    activeDate={activeDate}
+                    changeDate={changeDate}
+                    isCorporate={isCorporate}
+                />
             </div>
             <div className="absolute top-0 left-0 h-full w-full flex flex-col justify-center sm:gap-5 lg:gap-4 xl:gap-20 pt-8 pb-24 md:flex-row print:py-0 print:h-[100vh]">
                 <div className="md:mr-4 flex flex-col items-center justify-center overflow-hidden md:ml-36 print:mx-0 print:pt-0">
@@ -199,14 +224,20 @@ export default function Home({ productsWithQty, initialOrderCounts }) {
                     </div>
                     <div className="flex overflow-hidden justify-center items-center pb-6 pt-40 print:mr-auto print:pt-0 md:pt-0">
                         <h2 className="text-default-900 font-bold text-3xl text-center print:text-left">
-                            <span className="print:hidden">
-                                Week of:{' '}
-                                {endDate == 'Present' ? 'All' : endDate}
-                            </span>
-                            <span className="hidden print:block">
-                                DELIVERY DATE:{' '}
-                                {endDate == 'Present' ? 'All' : endDate}
-                            </span>
+                            {isCorporate ? (
+                                <span>Corporate</span>
+                            ) : (
+                                <>
+                                    <span className="print:hidden">
+                                        Week of:{' '}
+                                        {endDate == 'Present' ? 'All' : endDate}
+                                    </span>
+                                    <span className="hidden print:block">
+                                        DELIVERY DATE:{' '}
+                                        {endDate == 'Present' ? 'All' : endDate}
+                                    </span>
+                                </>
+                            )}
                         </h2>
                         <div className="print:hidden">
                             <Button

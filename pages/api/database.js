@@ -110,6 +110,7 @@ export async function updateTableData(table_data, uid, col_name, order_cost) {
         'order_cost',
         'misc_fees',
         'creation_timestamp',
+        'is_corporate',
     ]
 
     let table_name = 'order_items'
@@ -131,6 +132,7 @@ export async function updateTableData(table_data, uid, col_name, order_cost) {
     const updateCols = {
         [column_name]: inserted_data,
     }
+
     if (table_name === 'order_items') {
         const { data, error } = await supabase.rpc('update_order_item', {
             update_order_uid: uid,
@@ -145,6 +147,10 @@ export async function updateTableData(table_data, uid, col_name, order_cost) {
     } else {
         if (table_name === 'orders' && column_name !== 'is_verified') {
             updateCols.is_verified = false
+        }
+        if (table_name === 'orders' && column_name === 'is_corporate') {
+            updateCols.is_corporate =
+                updateCols.is_corporate.toLowerCase() === 'yes'
         }
         const { data, error } = await supabase
             .from(table_name)
@@ -283,7 +289,8 @@ export async function getSpendingByDay(start_date, end_date) {
 export async function getCustomersData() {
     const { data, error } = await supabase
         .from('customers')
-        .select(`
+        .select(
+            `
             customer_uid,
             customer_name,
             email,
@@ -297,11 +304,38 @@ export async function getCustomersData() {
                 misc_fees,
                 has_paid,
                 is_verified,
-                creation_timestamp
+                creation_timestamp,
+                is_corporate
             )
-        `)
+        `
+        )
         .order('customer_name', { ascending: true })
 
+    if (error) {
+        console.log(error)
+        return false
+    }
+    return data
+}
+
+export async function getTotalCorporateProductQty(start_date) {
+    const { data, error } = await supabase.rpc(
+        'get_total_corporate_product_qty',
+        { start_date }
+    )
+
+    if (error) {
+        console.error('Failed to get total corporate product qty', error)
+        return false
+    }
+
+    return data
+}
+
+export async function getCorporateOrderCounts(start_date) {
+    const { data, error } = await supabase.rpc('get_corporate_order_counts', {
+        start_date,
+    })
     if (error) {
         console.log(error)
         return false
