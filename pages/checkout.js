@@ -214,6 +214,19 @@ export default function Checkout({ products }) {
 
         if (!order_uid) return false
 
+        // Send order email
+        await fetch('/api/sendOrderEmail', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                order_details: formData,
+                order_cost: orderCost,
+                cart,
+                products: products,
+                email_addresses: [],
+            }),
+        })
+
         try {
             // Transform cart items to Square format
             const squareItems = Object.keys(cart).map((productKey) => {

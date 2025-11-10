@@ -8,11 +8,11 @@ export default async function sendOrderEmail(req, res) {
             subject: `You've received a new order from ${order_details.customer_name}!`,
         },
     ]
-    email_addresses.forEach((email) => {
-        messageVersions.push({
-            to: [{ email: email.address, name: email.name }],
-        })
-    })
+    // email_addresses.forEach((email) => {
+    //     messageVersions.push({
+    //         to: [{ email: email.address, name: email.name }],
+    //     })
+    // })
 
     let messageBody = `
     <!DOCTYPE html>
