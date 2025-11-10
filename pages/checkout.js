@@ -79,7 +79,6 @@ export default function Checkout({ products }) {
         })
     }
 
-
     const validateForm = () => {
         const requiredFields = [
             'customer_name',
@@ -395,8 +394,8 @@ export default function Checkout({ products }) {
             text: 'Alternative Delivery Date',
             fieldStyle: 'input',
             type: 'date',
-            min: '2024-11-01',
-            max: '2024-01-31',
+            min: '2025-11-01',
+            max: '2026-01-31',
             hidden: true,
             required: true,
             description:
