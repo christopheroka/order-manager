@@ -34,6 +34,7 @@ async function getRawBody(req) {
 
 // Verify webhook signature according to Square's specification
 function verifySignature(body, signature, signatureKey, notificationUrl) {
+    console.log({ body, signature, signatureKey, notificationUrl })
     if (!signature || !signatureKey || !notificationUrl) {
         return false
     }
