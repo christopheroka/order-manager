@@ -1,6 +1,6 @@
 // pages/api/webhooks/square.js
 import { SquareClient, SquareEnvironment, WebhooksHelper } from 'square'
-import { updatePaymentStatus } from '../database.js'
+import { updateEmailSentStatus, updatePaymentStatus } from '../database.js'
 
 // Generate a signature from the notification url, signature key,
 // and request body and compare it to the Square signature header.
@@ -152,6 +152,23 @@ async function handlePaymentUpdated(data) {
                 } else {
                     console.error(
                         'Failed to update payment status for order:',
+                        order_uid
+                    )
+                }
+
+                const emailSuccess = await updateEmailSentStatus(
+                    order_uid,
+                    true
+                )
+
+                if (emailSuccess) {
+                    console.log(
+                        'Email sent status updated for order:',
+                        order_uid
+                    )
+                } else {
+                    console.error(
+                        'Failed to update email sent status for order:',
                         order_uid
                     )
                 }
