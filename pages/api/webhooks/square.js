@@ -1,7 +1,17 @@
 // pages/api/webhooks/square.js
-import crypto from 'crypto'
-import { SquareClient, SquareEnvironment } from 'square'
+import { SquareClient, SquareEnvironment, WebhooksHelper } from 'square'
 import { updatePaymentStatus } from '../database.js'
+
+// Generate a signature from the notification url, signature key,
+// and request body and compare it to the Square signature header.
+async function isFromSquare(signature, body) {
+    return await WebhooksHelper.verifySignature({
+        requestBody: body,
+        signatureHeader: signature,
+        signatureKey: process.env.SQUARE_WEBHOOK_SIGNATURE_KEY,
+        notificationUrl: NOTIFICATION_URL,
+    })
+}
 
 const client = new SquareClient({
     token: process.env.SQUARE_ACCESS_TOKEN,
@@ -30,22 +40,6 @@ async function getRawBody(req) {
         })
         req.on('error', reject)
     })
-}
-
-// Verify webhook signature according to Square's specification
-function verifySignature(body, signature, signatureKey, notificationUrl) {
-    console.log({ body, signature, signatureKey, notificationUrl })
-    if (!signature || !signatureKey || !notificationUrl) {
-        return false
-    }
-
-    // Square webhook signature is generated from: signatureKey + notificationUrl + body
-    const hmac = crypto.createHmac('sha256', signatureKey)
-    hmac.update(notificationUrl + body)
-    const hash = hmac.digest('base64')
-
-    // Use constant-time comparison to prevent timing attacks
-    return crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(signature))
 }
 
 export default async function handler(req, res) {
@@ -81,9 +75,7 @@ export default async function handler(req, res) {
         }
 
         // Verify the webhook signature
-        if (
-            !verifySignature(rawBody, signature, signatureKey, notificationUrl)
-        ) {
+        if (!(await isFromSquare(signature, rawBody))) {
             console.error('Invalid webhook signature')
             return res.status(401).json({ error: 'Invalid signature' })
         }
