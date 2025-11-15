@@ -9,8 +9,10 @@ export default function Button(props) {
         e.preventDefault()
         updateDisabled(true)
         if (props.clickHandler) {
-            await props.clickHandler(e)
-            updateDisabled(false)
+            const res = await props.clickHandler(e)
+            if (!props.hasRedirect || !res) {
+                updateDisabled(false)
+            }
         } else {
             updateDisabled(false)
         }
@@ -84,9 +86,10 @@ export default function Button(props) {
             ) : (
                 <button
                     className={`tracking-widest rounded-md flex items-center font-bold ${buttonStyle} ${
-                        disabled ? 'opacity-50 cursor-default' : ''
+                        disabled ? 'opacity-50 cursor-not-allowed' : ''
                     } ${props.className}`}
                     onClick={disabled ? null : handleClick}
+                    disabled={disabled}
                 >
                     {props.img && (
                         <div

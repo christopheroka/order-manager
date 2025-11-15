@@ -1,6 +1,7 @@
 export default async function sendOrderEmail(req, res) {
     const { body } = req
     const { products, cart, order_details, order_cost, email_addresses } = body
+    console.log('Sending order email for: ', order_details)
 
     const messageVersions = [
         {
@@ -45,7 +46,7 @@ export default async function sendOrderEmail(req, res) {
             messageBody += `<tr>`
         }
         messageBody += `
-        <td style="padding-bottom: 1rem; padding: 0 0.5rem;">
+        <td style="padding-bottom: 1rem; padding: 0 0.5rem; padding-top: 2rem;">
             <h3 style="margin: 0;color:rgb(22, 22, 22); line-height: 1.75rem; font-size: 1.125rem; text-align: center; padding-bottom: 0.25rem; white-space: nowrap;">
                 ${product.product_name}
             </h3>
@@ -110,18 +111,23 @@ export default async function sendOrderEmail(req, res) {
                         order_details.payment_type
                     }</p>
                 </div>
-                <div style="margin-top: 0.2rem;">
+${
+    order_details.payment_type === 'E-Transfer' ||
+    (order_details.payment_type === 'Cash'
+        ? `<div style="margin-top: 0.2rem;">
                     <p style="margin: 0;text-align: center; font-size: 1.2rem; font-style: italic">${
                         order_details.payment_type === 'E-Transfer'
                             ? 'Please direct E-Transfer to martharave@yahoo.com'
                             : 'Please pay cash at time of delivery'
                     }</p>
-                </div>
+                </div>`
+        : '')
+}
              </div>
              `
     messageBody += `<div style="font-family: 'Google Sans', Verdana, sans-serif; color: rgb(22, 22, 22);margin: auto; width: fit-content;border-radius: 5px; border: 2px solid rgb(230, 230, 230); margin-top: 1rem; margin-bottom: 3rem;">
                         <div style="padding: 1.6rem;">
-                            <p style="margin: 0;font-size: 1.3rem">Please feel free to email me if you have any questions or if your order details are incorrect at <a href="mailto:martharave@yahoo.com">martharave@yahoo.com</a><br><br>I look forward to baking holiday treats for you!<br><br>Sincerely,<br>Martha</p>
+                            <p style="margin: 0;font-size: 1.3rem">Please feel free to email me if you have any questions or if your order details are incorrect at <a href="mailto:marthamrave@gmail.com">marthamrave@gmail.com</a><br><br>I look forward to baking holiday treats for you!<br><br>Sincerely,<br>Martha</p>
                         </div>
                     </div>
                 </div>

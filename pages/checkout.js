@@ -44,7 +44,7 @@ async function sendFormData(data) {
 }
 
 export default function Checkout({ products }) {
-    const [formData, updateFormData] = useState({})
+    const [formData, updateFormData] = useState({ payment_type: 'Online' })
     const [emptyFields, updateEmptyFields] = useState({})
     const [cart, updateCart] = useState({})
     const [itemCosts, updateItemCosts] = useState({})
@@ -261,6 +261,7 @@ export default function Checkout({ products }) {
 
             // Redirect to Square's hosted checkout
             window.location.href = data.checkoutUrl
+            return true
         } catch (err) {
             console.error('Checkout error:', err)
             alert('Failed to create payment. Please try again.')
@@ -561,6 +562,7 @@ export default function Checkout({ products }) {
                         type="primary"
                         img="/images/icons/cookie.png"
                         clickHandler={handleCheckout}
+                        hasRedirect
                     >
                         PAY FOR ORDER
                     </Button>
